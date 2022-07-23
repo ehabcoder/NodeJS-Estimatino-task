@@ -1,0 +1,53 @@
+#header {
+    text-align: center !important;
+    margin-top: 4rem !important;
+}
+
+.container1 {
+    margin-top: 2rem;
+}
+
+.container1 button {
+    padding: 1rem;
+}
+
+.container1 button a {
+    text-decoration: none;
+    color: #fff;
+}
+
+.card1 {
+    width: 70%;
+    margin: auto;
+    padding: 4rem;
+    margin-top: 2rem;
+}
+
+.card2 {
+    padding: 1rem;   
+}
+
+.assigned {
+    color: red;
+}
+
+.merchantTitle {
+    margin-right: 1rem;
+}
+
+.merchantClientName {
+    margin-right: 1rem;
+}
+
+#containers button {
+    margin-right: 1rem;
+}
+
+#containers div {
+    margin: 1rem;
+}
+
+#containers a {
+    text-decoration: none;
+    color: #fff;
+}

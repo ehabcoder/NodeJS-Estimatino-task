@@ -1,0 +1,23 @@
+<div class="card card1" id="firstMerchantLayout">
+    <h1>Welcome Merchant!</h1>
+    <form action="/getMerchant">
+        <p style="color: red;">Note: there is hard coded merchants in the database.</p>
+        <p>try the name: <span style="color: red;">salah</span></p>
+        <p>and the email: <span style="color: red;">mosalah@gmail.com</span></p>
+        <div class="mb-3">
+            <label for="name" class="form-label">Enter your name</label>
+            <input type="text" name="name" class="form-control" id="name" placeholder="your name...">
+            <% if(message) {%>
+                <small id="emailHelp" class="form-text assigned">
+                    <%-message%>
+                </small>
+                <% } %>
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Enter your email</label>
+            <input type="email" name="email" class="form-control" id="email" placeholder="your email...">
+        </div>
+        <button type="submit" class="btn btn-primary">Enter</button>
+    </form>
+</div>

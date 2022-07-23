@@ -1,0 +1,115 @@
+<div class="card card1" id="secondLayout">
+  <h1 id="flash"></h1>
+  <h1>Welcome Client <span id="clientName" class="assigned">
+      <%- client[0].name %>
+        <input id="client_id" type="hidden" value="<%- client[0].id %>" />
+    </span></h1>
+  <h2>your email is <span class="assigned">
+      <%- client[0].email %>
+    </span></h2>
+  <h3>Your address is <span class="assigned">
+      <%- client[0].address %>
+    </span></h3>
+  <hr>
+  <h3>and here is your order details</h3>
+  <hr>
+  <h1 id="noOrders"></h1>
+  <div class="content">
+    <div id="clientId">ID | <%- order.id %>
+        <!-- Hidded input to get the id of the order -->
+        <input type="hidden" value="<%-order.id%>" id="orderID" />
+    </div>
+    <div id="clientTitle">Title | <%- order.title %>
+    </div>
+    <div id="clientDescription">Description | <%- order.description %>
+    </div>
+    <div id="merchatntId">Merchant ID | <%- order.merchant_id %>
+    </div>
+    <div id="merchantStatus">Merchant stauts | <span id="clientState">
+        <%-order.merchant_status%>
+      </span></div>
+    <div id="driverStatus">Driver stauts | <span id="clientState">
+        <%-order.driver_status%>
+      </span>
+      <input type="hidden" id="merchantState" value="<%- order.merchant_status %>" />
+      <input type="hidden" id="driverState" value="<%- order.driver_status %>" />
+    </div>
+  </div>
+  <hr>
+  <p>When you receive the order please click the button below...</p>
+  <button onclick="received(document.getElementById('orderID').value)" class="btn btn-success">Received</button>
+</div>
+
+</div>
+<script type="text/javascript" src="/dependencies/sails.io.js"></script>
+<script>
+  const client_id = document.getElementById('client_id').value;
+  const merchantState = document.getElementById('merchantStatus');
+  const driverState = document.getElementById('driverStatus');
+
+  // hidden inputs
+  const merchantStateValue = document.getElementById('merchantState').value;
+  const driverStateValue = document.getElementById('driverState').value;
+
+  io.socket.on('connect', function onConnect() {
+
+    // Change the color of status if it 'Accept'
+    if (merchantStateValue === 'Accepted!') {
+      merchantState.style.color = 'green';
+    } else {
+      merchantState.style.color = 'red';
+    }
+    // Change the color of status if it 'Accept'
+    if (driverStateValue === 'Accepted!') {
+      driverState.style.color = 'green';
+    } else {
+      driverState.style.color = 'red';
+    }
+
+    // Assigning the client the the ORRoom room
+    io.socket.put(`/client/assignToORRoom/${client_id}`, {}, function (resData, jwres) {
+
+      // showing flash header for one second 
+      document.getElementById('flash').innerHTML = resData.message
+
+      setTimeout(() => {
+        document.getElementById('flash').style.display = "none";
+      }, 2000)
+
+    })
+
+    io.socket.on('merchantAccept', function onServerSentEvent(msg) {
+      merchantState.innerHTML = 'Status | Merchant Accept the order!';
+      merchantState.style.color = 'green';
+    });
+    io.socket.on('merchantReject', function onServerSentEvent(msg) {
+      merchantState.innerHTML = 'Status | Merchant Reject the order';
+      merchantState.style.color = 'red';
+    });
+
+    io.socket.on('driverAccept', function onServerSentEvent(msg) {
+      driverState.innerHTML = 'Status | Driver Accept the order!';
+      driverState.style.color = 'green';
+    });
+    io.socket.on('driverReject', function onServerSentEvent(msg) {
+      driverState.innerHTML = 'Status | Driver Reject the order';
+      driverState.style.color = 'red';
+    });
+    io.socket.on('delivered', function onDeliver(msg) {
+      merchantState.innerHTML = 'Status | Order Delivered!';
+      merchantState.style.color = 'green';
+      driverState.innerHTML = 'Status | Order Delivered!';
+      driverState.style.color = 'green';
+    });
+
+    io.socket.on('notification', function onNotification(msg) {
+      alert(msg.msg);
+    })
+
+    // io.socket.get('/orderStatus/')
+  })
+
+  const received = (orderID) => {
+    io.socket.put('/received', { orderID }, function (resData, jwres) { })
+  }
+</script>

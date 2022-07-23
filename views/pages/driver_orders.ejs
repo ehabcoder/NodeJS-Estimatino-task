@@ -1,0 +1,166 @@
+<div class="card card1" id="secondLayout">
+    <h1 class="assigned" id="flash"></h1>
+    <!-- Hidden input for driver id -->
+    <input type="hidden" value="<%-driver[0].id%>" id="driverId" />
+    <h1>Welcome Driver <span id="clientName"><span style="color: red;">
+                <%- driver[0].name %>
+            </span></span></h1>
+    <div>And your Email is <span id="clientAddress"><span style="color: red;">
+                <%- driver[0].email %>
+            </span></span> </div>
+    <input type="hidden" value="<%- driver[0].id %>" id="driver_id" />
+    <h3>Here are the orders</h3>
+    <hr>
+    <h1 id="noOrders"></h1>
+    <div id="containers">
+
+    </div>
+    <div class="onDelevery">
+        <p>when you around the client location by 1KM you can tell him by clicking that button</p>
+        <button onclick="sentNotification('Hey! Be ready to take your order.')" class="btn btn-primary">Around Client
+            Location by 1km</button>
+        <hr>
+        <p>if you arrive at the location, and the client doesn't pickup his order, after 5m you can send him a
+            notification by clicking that button.</p>
+        <button onclick="sentNotification('You are late! The driver is waiting for you.')"
+            class="btn btn-primary">Alert</button>
+    </div>
+</div>
+</div>
+
+<script type="text/javascript" src="/dependencies/sails.io.js"></script>
+<script>
+    io.socket.on('connect', function onConnect() {
+        const driver_id = document.getElementById('driver_id').value;
+        // Assigning driver the the drivers room
+        io.socket.put(`/driver/assignToDriversRoom/${driver_id}`, {}, function (resData, jwres) {
+
+            // showing flash header for one second 
+            document.getElementById('flash').innerHTML = resData.message
+            setTimeout(() => {
+                document.getElementById('flash').style.display = "none";
+            }, 2000)
+
+        });
+        io.socket.on('newOrder', function (data) {
+            // submit order to the database
+            handleDom(data.order);
+        });
+        io.socket.get(`/orderWithDriver/${driver_id}`, {}, function (resData, jwres) {
+            if (Object.keys(resData).length == 0) {
+                document.querySelector('.onDelevery').style.display = 'none';
+                return;
+            }
+            handleDom(resData.driver)
+        })
+
+
+        io.socket.on('delivered', function onDeliver(msg) {
+            const merchantState = document.getElementById('merchantState');
+            const driverState = document.getElementById('driverState');
+            merchantState.innerHTML = 'Status | Order Delivered!';
+            merchantState.style.color = 'green';
+            driverState.innerHTML = 'Status | Order Delivered!';
+            driverState.style.color = 'green';
+        });
+    })
+
+    function handleDom(order) {
+        let content = document.createElement("div");
+
+        let id = document.createElement("div");
+        id.classList.add('element');
+        id.innerHTML = `ID | ${order.id}`;
+
+        let title = document.createElement("div");
+        title.classList.add('element');
+        title.innerHTML = `Title | ${order.title}`;
+
+        let description = document.createElement("div");
+        description.classList.add('element');
+        description.innerHTML = `Description | ${order.description}`;
+
+        let Merchant_id = document.createElement("div");
+        Merchant_id.classList.add('element');
+        Merchant_id.innerHTML = `Merchant_id | ${order.merchant_id}`;
+
+        let merchant_status = document.createElement("div");
+        merchant_status.classList.add('element');
+        merchant_status.id = "merchantState";
+
+        merchant_status.innerHTML = `Merchant Status | ${order.merchant_status}`;
+        if (order.merchant_status === 'Accepted!' || order.merchant_status === 'Order Delivered!') {
+            merchant_status.style.color = "green";
+        }
+
+        let driver_status = document.createElement("div");
+        driver_status.classList.add('element');
+        driver_status.id = "driverState";
+        if (order.driver_status === 'Accepted!' || order.driver_status === 'Order Delivered!') {
+            driver_status.style.color = 'green';
+        }
+        driver_status.innerHTML = `Driver Status | ${order.driver_status}`;
+
+        let acceptBtn = document.createElement("button");
+        acceptBtn.classList.add('btn');
+        acceptBtn.classList.add('btn-primary');
+        acceptBtn.innerHTML = 'Accept';
+
+        let rejectBtn = document.createElement("button");
+        rejectBtn.classList.add('btn');
+        rejectBtn.classList.add('btn-danger');
+        rejectBtn.innerHTML = 'Reject';
+
+        if (order.driver_status === 'Accepted!' || order.driver_status === 'Order Delivered!') {
+            acceptBtn.style.display = "none";
+            rejectBtn.style.display = "none";
+            merchant_status.style.color = 'green';
+        }
+        content.classList.add('content');
+        content.appendChild(id)
+        content.appendChild(title)
+        content.appendChild(description)
+        content.appendChild(Merchant_id)
+        content.appendChild(merchant_status)
+        content.appendChild(driver_status)
+        content.appendChild(acceptBtn)
+        content.appendChild(rejectBtn)
+        document.getElementById('containers').appendChild(content)
+        document.getElementById('containers').appendChild(document.createElement("hr"))
+
+        let acceptanceParagraph = document.createElement('p');
+        acceptanceParagraph.style.color = 'green'
+        acceptanceParagraph.innerHTML = "Thank you! you joined now to the ORRoom With the client and the merchant.";
+
+        const driver_id = document.getElementById('driverId').value;
+        acceptBtn.addEventListener('click', function () {
+            io.socket.put(`/driver/accept/${order.id}`, { driver_id: driver_id }, function (resData, jwres) {
+                if (resData.message) {
+                    acceptBtn.style.display = 'none';
+                    rejectBtn.style.display = 'none';
+                    driver_status.innerHTML = 'Driver Status | Accepted!';
+                    driver_status.style.color = 'green';
+                    content.appendChild(acceptanceParagraph)
+                }
+            });
+            document.querySelector('.onDelevery').style.display = 'block';
+        });
+        let rejectedParagraph = document.createElement('p');
+        rejectedParagraph.style.color = 'red'
+        rejectedParagraph.innerHTML = "The Order is rejected.";
+        rejectBtn.addEventListener('click', function () {
+            io.socket.put(`/driver/reject/${order.id}`, {}, function (resData, jwres) {
+                if (resData.message) {
+                    acceptBtn.style.display = 'none';
+                    rejectBtn.style.display = 'none';
+                    merchant_status.innerHTML = 'Driver Status | Rejecte!';
+                    merchant_status.style.color = 'red';
+                    content.appendChild(rejectedParagraph)
+                }
+            });
+        });
+    }
+    sentNotification = (msg) => {
+        io.socket.put('/driverNotifications', { msg }, function (resData, jwr) { });
+    }
+</script>

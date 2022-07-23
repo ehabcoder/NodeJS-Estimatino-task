@@ -1,0 +1,31 @@
+<div class="card card1">
+    <h1>Welcome <span class="assigned">
+            <%- client[0].name %>
+    </h1></span>
+    <hr>
+    <h1>To make new order please fill the data below...</h1>
+    <p class="assigned">Note assign the merchant id to 1 because we hardcodded it into the database.</p>
+
+    <form action="/makeOrder" method="POST">
+        <input type="hidden" name="client_id" value="<%-client[0].id%>" />
+        <input type="hidden" name="client_name" value="<%-client[0].name%>" />
+        <input type="hidden" name="client_address" value="<%-client[0].address%>" />
+        <div class="mb-3">
+            <label for="order" class="form-label">Enter the order title</label>
+            <input type="text" name="title" class="form-control" id="order" placeholder="your order title...">
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Enter the order description</label>
+            <input type="text" name="description" class="form-control" id="description"
+                placeholder="your order description...">
+        </div>
+
+        <div class="mb-3">
+            <label for="merchantId" class="form-label">Enter the merchant id</label>
+            <input type="number" name="merchant_id" class="form-control" id="merchantId"
+                placeholder="your Merchant id...">
+        </div>
+        <button type="submit" class="btn btn-primary">Order</button>
+    </form>
+</div>
